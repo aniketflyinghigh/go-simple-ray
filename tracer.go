@@ -2,8 +2,10 @@ package main
 
 import (
   "fmt"
+  "os"
 )
 
 func main() {
-  fmt.Printf("%s\n", "Hello world")
+  sceneFile := os.Args[len(os.Args)-1]
+  fmt.Printf("%s\n", sceneFile)
 }
