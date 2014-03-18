@@ -2,7 +2,7 @@ package main
 
 import (
     "testing"
-    . "github.com/franela/goblin"
+    "github.com/franela/goblin"
     "math"
 )
 
@@ -38,6 +38,10 @@ func Test(t *testing.T) {
 
         g.It("Should have a lengthsquared", func() {    
             g.Assert(v1.lengthSquared()).Equal(v1.length() * v1.length())
+        })
+
+        g.It("Should have a norm", func() {    
+            g.Assert(v1.norm()).Equal(Vector{0.2672612419124244, 0.5345224838248488, 0.8017837257372732})
         })
     })
 }
