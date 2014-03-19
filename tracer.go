@@ -90,6 +90,18 @@ func(this Ray) multiply(v float64) Vector {
   return this.Position.multiply(this.Direction).multiplyFloat(v)
 }
 
+func (this Color) multiply(that Color) Color {
+  return Color{ this.Red * that.Red, this.Green * that.Green, this.Blue * that.Blue }
+}
+
+func (this Color) add(that Color) Color {
+  return Color{ this.Red + that.Red, this.Green + that.Green, this.Blue + that.Blue }
+}
+
+func (this Color) multiplyFloat(that float64) Color {
+  return Color{ this.Red * that, this.Green * that, this.Blue * that }
+}
+
 func(this Sphere) intersectRay(ray Ray) float64 {
   v := this.Position.subtract(ray.Position)
   a := v.multiplyFold(ray.Direction)
@@ -100,6 +112,34 @@ func(this Sphere) intersectRay(ray Ray) float64 {
   } else {
     return math.Inf(1)
   }
+}
+
+func computeColor(hitAngle float64, ray Ray, sphere Sphere, light Light, ambientLight Light) Color {
+  if hitAngle == math.Inf(1) {
+    return Color{0, 0, 0}
+  } else {
+    vectorCoefficient := ray.multiply(hitAngle)
+    shadedCoefficient := light.Position.subtract(sphere.Position).norm().multiplyFold(vectorCoefficient.subtract(sphere.Position).norm())
+    finalColor := sphere.Color.multiply(light.Color.multiplyFloat(math.Max(shadedCoefficient, 0))).add(ambientLight.Color)
+    return finalColor
+  }
+}
+
+func getObjectColor(scene Scene, obj Sphere, ray Ray) Color {
+  hitAngle := obj.intersectRay(ray)
+  return computeColor(hitAngle, ray, obj, scene.Lights[0], scene.AmbientLight)
+}
+
+func getClosestSphere(ray Ray, spheres []Sphere) Sphere {
+  min := Sphere{}
+  for _, element := range spheres {
+    intersectedRay := element.intersectRay(ray)
+    if intersectedRay < min.intersectRay(ray) {
+      min = element
+    }
+    fmt.Println(element)
+  }
+  return min
 }
 
 func parseScene(filename string) Scene {
@@ -119,6 +159,5 @@ func parseScene(filename string) Scene {
 func main() {
   res := parseScene("/.scene.json")
   fmt.Println(res)
-
 }
 
