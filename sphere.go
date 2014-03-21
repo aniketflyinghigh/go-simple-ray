@@ -11,7 +11,6 @@ type Sphere struct {
   Diffuse Color
 }
 
-
 func(this Sphere) intersectRay(ray Ray) float64 {
   v := this.Position.subtract(ray.Position)
   a := v.multiplyFold(ray.Direction)
