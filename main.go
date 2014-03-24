@@ -6,9 +6,9 @@ import (
 )
 
 func main() {
-  width, height := 640, 480
+  width, height := 720, 480
   scene := parseScene("/.scene.json")
-  image := trace(scene, width, height)
+  image := render(scene, width, height)
   toimg, _ := os.Create("out.jpg")
   png.Encode(toimg, image)
 }

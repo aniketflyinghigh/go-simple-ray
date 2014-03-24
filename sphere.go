@@ -11,14 +11,14 @@ type Sphere struct {
   Diffuse Color
 }
 
-func(this Sphere) intersectRay(ray Ray) float64 {
-  v := this.Position.subtract(ray.Position)
-  a := v.multiplyFold(ray.Direction)
-  b := v.lengthSquared() - float64(this.Radius * this.Radius)
+func(this Sphere) intersectRay(ray Ray) Intersection {
+  distance := this.Position.subtract(ray.Position)
+  a := ray.Direction.multiplyFold(distance)
+  b := distance.lengthSquared() - float64(this.Radius * this.Radius)
   c := a * a -b
   if c >= 0 {
-    return a - math.Sqrt(c)
+    return Intersection{this, ray, a - math.Sqrt(c)}
   } else {
-    return math.Inf(1)
+    return Intersection{this, ray, math.Inf(1)}
   }
 }

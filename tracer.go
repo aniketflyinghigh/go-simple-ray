@@ -21,40 +21,77 @@ type Light struct {
   Color Color
 }
 
-func computeColor(hitAngle float64, ray Ray, sphere Sphere, light Light, ambientLight Light) Color {
+type Intersection struct {
+  Sphere Sphere
+  Ray Ray
+  Distance float64
+}
+
+func computeColor(hitAngle float64, ray Ray, sphere Sphere, lights []Light, ambientLight Light) Color {
+  // if the ray continues on forever, return black
   if hitAngle == math.Inf(1) {
     return Color{0, 0, 0}
   } else {
-    vectorCoefficient := ray.multiply(hitAngle)
-    shadedCoefficient := light.Position.subtract(sphere.Position).norm().multiplyFold(vectorCoefficient.subtract(sphere.Position).norm())
-    finalColor := sphere.Color.multiply(light.Color.multiplyFloat(math.Max(shadedCoefficient, 0)).add(ambientLight.Color))
-    return finalColor
+
+    // vectorCoefficient := ray.multiply(hitAngle)
+
+
+    // shadedCoefficient := lights[0].Position.subtract(sphere.Position).norm().multiplyFold(vectorCoefficient.subtract(sphere.Position).norm())
+
+
+    // color := Color{0, 0, 0}.multip(shadedCoefficient)
+    // // shadedCoefficient := sphere.Position.norm().multiplyFold(vectorCoefficient.subtract(sphere.Position).norm())
+    // // lighting := Color{0, 0, 0}
+    
+    // // add ambient light
+    // // lighting = lighting.multiply(lights[1].Color)
+    
+    // // add the scene lights
+    // // for _, light := range lights {
+    // //   lighting = lighting.add(light.Color)
+    // // }
+
+    // // add the lighting to the sphere colors 
+    // color := sphere.Color.add(lights[0].Color.multiplyFloat(math.Max(shadedCoefficient, 0)))
+    // // color := sphere.Color.add(lighting)
+    // // color := sphere.Color.multiply(lighting.multiplyFloat(math.Max(shadedCoefficient, 0)))
+    color := sphere.Color
+    return color
+    
   }
 }
 
-func getObjectColor(scene Scene, obj Sphere, ray Ray) Color {
-  hitAngle := obj.intersectRay(ray)
-  return computeColor(hitAngle, ray, obj, scene.Lights[0], scene.AmbientLight)
+func shade(intersection Intersection, scene Scene, depth int) Color {
+  return intersection.Sphere.Color
 }
 
-func getClosestSphere(ray Ray, spheres []Sphere) Sphere {
-  min := Sphere{}
-  for _, element := range spheres {
-    intersectedRay := element.intersectRay(ray)
-    if intersectedRay < min.intersectRay(ray) {
-      min = element
+func traceRay(ray Ray, scene Scene) Color {
+  intersection := closestIntersection(ray, scene)
+  fmt.Println(intersection.Distance)
+  if intersection.Distance == math.Inf(1) {
+    return Color{0, 0, 0};
+  } else {
+    return shade(intersection, scene, 2);
+  }
+}
+
+func closestIntersection(ray Ray, scene Scene) Intersection {
+  min := Intersection{ Sphere{}, ray, math.Inf(1) }
+  for _, element := range scene.Objects {
+    intersection := element.intersectRay(ray)
+    if intersection.Distance < min.Sphere.intersectRay(ray).Distance {
+      min = intersection
     }
   }
   return min
 }
 
-func trace(scene Scene, width int, height int) *image.RGBA  {
+func render(scene Scene, width int, height int) *image.RGBA  {
   image := image.NewRGBA(image.Rect(0, 0, width, height)) 
   for x := 0; x <= width; x++ {
     for y := 0; y <= height; y++ {
-      ray := Ray{ Vector{float64(x), float64(y), -1000}, Vector{0, 0, 1}.norm() }
-      closestSphere := getClosestSphere(ray, scene.Objects)
-      finalColor := getObjectColor(scene, closestSphere, ray)
+      ray := Ray{ Vector{float64(x), float64(y), -1000}, scene.Eye }
+      finalColor := traceRay(ray, scene)
       color := color.RGBA{uint8(finalColor.Red * 255), uint8(finalColor.Green * 255), uint8(finalColor.Blue * 255), 255}
       image.Set(x, y, color) 
     }
