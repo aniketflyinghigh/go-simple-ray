@@ -24,7 +24,7 @@ func (this Vector) divide(that Vector) Vector {
     return Vector{this.X / that.X, this.Y / that.Y, this.Z / that.Z}
 }
 
-func (this Vector) multiplyFloat(that float64) Vector {
+func (this Vector) scale(that float64) Vector {
     return Vector{this.X * that, this.Y * that, this.Z * that}
 }
 
@@ -48,6 +48,11 @@ func (this Vector) lengthSquared() float64 {
 func(this Vector) length() float64 {
   return math.Sqrt(this.lengthSquared())
 }
+
 func(this Vector) norm() Vector {
   return this.divideFloat(this.length())
+}
+
+func(this Vector) unitVector() Vector {
+  return this.scale(1 / this.length())
 }

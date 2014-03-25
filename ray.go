@@ -6,5 +6,5 @@ type Ray struct {
 }
 
 func(this Ray) multiply(v float64) Vector {
-  return this.Direction.multiplyFloat(v).add(this.Position)
+  return this.Direction.scale(v).add(this.Position)
 }

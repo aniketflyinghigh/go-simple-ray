@@ -11,14 +11,16 @@ type Sphere struct {
   Diffuse Color
 }
 
+// http://www.macwright.org/literate-raytracer/
 func(this Sphere) intersectRay(ray Ray) Intersection {
-  distance := this.Position.subtract(ray.Position)
-  a := ray.Direction.multiplyFold(distance)
-  b := distance.lengthSquared() - float64(this.Radius * this.Radius)
-  c := a * a -b
-  if c >= 0 {
-    return Intersection{this, ray, a - math.Sqrt(c)}
-  } else {
+  eyeToCenter := this.Position.subtract(ray.Position)
+  rayToEdgeOfSphere := eyeToCenter.dot(ray.Direction)
+  rayToCenterOfSphere := eyeToCenter.dot(eyeToCenter)
+  discriminant := float64(this.Radius * this.Radius) - rayToCenterOfSphere + (rayToEdgeOfSphere * rayToEdgeOfSphere)
+  if discriminant < 0 {
     return Intersection{this, ray, math.Inf(1)}
+  } else {
+    return Intersection{this, ray, rayToEdgeOfSphere - math.Sqrt(discriminant)}
   }
 }
+   

@@ -81,16 +81,16 @@
          },
          "Color":{
             "Red":0.7,
-            "Green":0.1,
-            "Blue":0.1
+            "Green":0.7,
+            "Blue":0.7
          }
       }
    ],
    "AmbientLight":{
       "Position":{
-         "X":0.0,
-         "Y":0.0,
-         "Z":0.0
+         "X":300.0,
+         "Y":300.0,
+         "Z":-100.0
       },
       "Color":{
          "Red":0.3,

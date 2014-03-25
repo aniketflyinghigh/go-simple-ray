@@ -27,56 +27,50 @@ type Intersection struct {
   Distance float64
 }
 
-func computeColor(hitAngle float64, ray Ray, sphere Sphere, lights []Light, ambientLight Light) Color {
-  // if the ray continues on forever, return black
-  if hitAngle == math.Inf(1) {
-    return Color{0, 0, 0}
-  } else {
-
-    // vectorCoefficient := ray.multiply(hitAngle)
-
-
-    // shadedCoefficient := lights[0].Position.subtract(sphere.Position).norm().multiplyFold(vectorCoefficient.subtract(sphere.Position).norm())
-
-
-    // color := Color{0, 0, 0}.multip(shadedCoefficient)
-    // // shadedCoefficient := sphere.Position.norm().multiplyFold(vectorCoefficient.subtract(sphere.Position).norm())
-    // // lighting := Color{0, 0, 0}
-    
-    // // add ambient light
-    // // lighting = lighting.multiply(lights[1].Color)
-    
-    // // add the scene lights
-    // // for _, light := range lights {
-    // //   lighting = lighting.add(light.Color)
-    // // }
-
-    // // add the lighting to the sphere colors 
-    // color := sphere.Color.add(lights[0].Color.multiplyFloat(math.Max(shadedCoefficient, 0)))
-    // // color := sphere.Color.add(lighting)
-    // // color := sphere.Color.multiply(lighting.multiplyFloat(math.Max(shadedCoefficient, 0)))
-    color := sphere.Color
-    return color
-    
-  }
+func (this Intersection) Position() Vector {
+  return this.Ray.Position.add(this.Ray.Direction.scale(this.Distance))
 }
 
-func shade(intersection Intersection, scene Scene, depth int) Color {
-  return intersection.Sphere.Color
+func (this Intersection) Normal() Vector {
+  return this.Position().subtract(this.Sphere.Position).unitVector()
+}
+
+func shade(intersection Intersection, scene Scene) Color {
+  lambert := 0.0
+
+  light := scene.AmbientLight
+  // Calculate the lambertian reflectance, which is essentially  a 'diffuse' lighting system.
+  // direct light is bright, and from there, less direct light is gradually, less light.
+  contribution := light.Position.subtract(intersection.Position()).unitVector().dot(intersection.Normal())
+
+  // sometimes this formula can return negatives, so we check:
+  // we only want positive values for lighting.
+  if contribution > 0 {
+    lambert += contribution
+  }
+
+  // lambert should never 'blow out' the lighting of an object,
+  // even if the ray bounces between a lot of things and hits lights
+  lambert = math.Min(1, lambert)
+  
+  lambertColor := intersection.Sphere.Color.scale(lambert)
+  ambientColor := intersection.Sphere.Color.scale(0.1)
+
+  // clamp the colors so it doesn't go create artifacts
+  return lambertColor.add(ambientColor).clamp()
 }
 
 func traceRay(ray Ray, scene Scene) Color {
   intersection := closestIntersection(ray, scene)
-  fmt.Println(intersection.Distance)
   if intersection.Distance == math.Inf(1) {
     return Color{0, 0, 0};
   } else {
-    return shade(intersection, scene, 2);
+    return shade(intersection, scene);
   }
 }
 
 func closestIntersection(ray Ray, scene Scene) Intersection {
-  min := Intersection{ Sphere{}, ray, math.Inf(1) }
+  min := Intersection{ Sphere{}, ray, math.Inf(1)}
   for _, element := range scene.Objects {
     intersection := element.intersectRay(ray)
     if intersection.Distance < min.Sphere.intersectRay(ray).Distance {
