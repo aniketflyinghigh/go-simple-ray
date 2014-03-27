@@ -35,7 +35,7 @@ type Sphere struct {
   Position Vector
   Radius int
   Color Color
-  Diffuse Color
+  Specular float64
 }
 
 type Plane struct {

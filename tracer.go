@@ -33,13 +33,13 @@ func shade(intersection Intersection, scene Scene, depth int) Color {
     lambert = math.Min(1, lambert)
   }
 
-  relfectedThrough := intersection.Ray.Direction.reflectThrough(intersection.Normal())
-  reflectedRay := Ray{intersection.Normal(), relfectedThrough}
+  reflectedThrough := intersection.Ray.Direction.reflectThrough(intersection.Normal())
+  reflectedRay := Ray{intersection.Normal(), reflectedThrough}
 
   reflectedColor := traceRay(reflectedRay, scene, depth + 1)
   blank := Color {0, 0, 0}
   if reflectedColor != blank  {
-    reflect = reflect.add(reflectedColor.scale(0.3))
+    reflect = reflect.add(reflectedColor.scale(intersection.Sphere.Specular))
   }
 
   lambertColor := intersection.Sphere.Color.scale(lambert)
@@ -47,8 +47,6 @@ func shade(intersection Intersection, scene Scene, depth int) Color {
   // combine the sphere color and the ambient light contribution
   ambientColor := intersection.Sphere.Color.multiply(scene.AmbientLight.Color)
  
-  // fmt.Println(reflect)
-
   // clamp the colors so it doesn't go create artifacts 
   return lambertColor.add(ambientColor).add(reflect).clamp()
 }
@@ -60,7 +58,7 @@ func isLightVisible(intersection Intersection, scene Scene, light Light) bool {
 }
 
 func traceRay(ray Ray, scene Scene, depth int) Color {
-  if depth > 4 {
+  if depth > 1 {
     return Color{0, 0, 0}
   }
   intersection := closestIntersection(ray, scene)
@@ -96,7 +94,7 @@ func render(scene Scene, width int, height int) *image.RGBA  {
 }
 
 func parseScene(filename string) Scene {
-  file, e := ioutil.ReadFile("./scene.json")
+  file, e := ioutil.ReadFile(filename)
   if e != nil {
       fmt.Printf("File error: %v\n", e)
   }
