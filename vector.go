@@ -39,7 +39,7 @@ func (this Vector) multiplyFold(that Vector) float64 {
 
 func (this Vector) dot(that Vector) float64 {
     return this.X * that.X + this.Y * that.Y + this.Z * that.Z
-}
+} 
 
 func (this Vector) lengthSquared() float64 {
     return this.multiplyFold(this);
@@ -55,4 +55,9 @@ func(this Vector) norm() Vector {
 
 func(this Vector) unitVector() Vector {
   return this.scale(1 / this.length())
+}
+
+func(this Vector) reflectThrough(normal Vector) Vector {
+  d := normal.scale(this.dot(normal))
+  return d.scale(2).subtract(this)
 }

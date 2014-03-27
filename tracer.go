@@ -9,8 +9,9 @@ import (
   "image/color"
 )
 
-func shade(intersection Intersection, scene Scene) Color {
+func shade(intersection Intersection, scene Scene, depth int) Color {
   lambert := 0.0
+  reflect := Color{0, 0, 0}
 
   for _, light := range scene.Lights {
 
@@ -32,27 +33,41 @@ func shade(intersection Intersection, scene Scene) Color {
     lambert = math.Min(1, lambert)
   }
 
+  relfectedThrough := intersection.Ray.Direction.reflectThrough(intersection.Normal())
+  reflectedRay := Ray{intersection.Normal(), relfectedThrough}
+
+  reflectedColor := traceRay(reflectedRay, scene, depth + 1)
+  blank := Color {0, 0, 0}
+  if reflectedColor != blank  {
+    reflect = reflect.add(reflectedColor.scale(0.3))
+  }
+
   lambertColor := intersection.Sphere.Color.scale(lambert)
 
   // combine the sphere color and the ambient light contribution
   ambientColor := intersection.Sphere.Color.multiply(scene.AmbientLight.Color)
  
+  // fmt.Println(reflect)
+
   // clamp the colors so it doesn't go create artifacts 
-  return lambertColor.add(ambientColor).clamp()
+  return lambertColor.add(ambientColor).add(reflect).clamp()
 }
 
 func isLightVisible(intersection Intersection, scene Scene, light Light) bool {
   ray := Ray{intersection.Position(), intersection.Position().subtract(light.Position).unitVector()}
   distObject := closestIntersection(ray, scene)
-  return distObject.Distance > -0.005
+  return distObject.Distance > -0.001
 }
 
-func traceRay(ray Ray, scene Scene) Color {
+func traceRay(ray Ray, scene Scene, depth int) Color {
+  if depth > 4 {
+    return Color{0, 0, 0}
+  }
   intersection := closestIntersection(ray, scene)
   if intersection.Distance == math.Inf(1) {
     return Color{0, 0, 0};
   } else {
-    return shade(intersection, scene);
+    return shade(intersection, scene, depth);
   }
 }
 
@@ -72,7 +87,7 @@ func render(scene Scene, width int, height int) *image.RGBA  {
   for x := 0; x <= width; x++ {
     for y := 0; y <= height; y++ {
       ray := Ray{ Vector{float64(x), float64(y), -1000}, scene.Camera.Direction }
-      finalColor := traceRay(ray, scene)
+      finalColor := traceRay(ray, scene, 0)
       color := color.RGBA{uint8(finalColor.Red * 255), uint8(finalColor.Green * 255), uint8(finalColor.Blue * 255), 255}
       image.Set(x, y, color) 
     }
