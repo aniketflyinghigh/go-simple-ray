@@ -2,7 +2,7 @@
 go-simple-ray is a very basic raytracer used as a learning exercise. It's limitations:
 
 * No proper lighting.
-* No reflection or refraction implemented
+* Minimal reflection and refraction implemented. 
 * Only objects to be handled are spheres since the maths for sphere -> ray intersection is very simple
 
 ## Scenes:
